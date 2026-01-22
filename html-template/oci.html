@@ -1,0 +1,181 @@
+$def with (pages, active)
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+        <link rel="icon" href="/static/favicon.ico" />
+        <title>OpenCitations - OCI</title>
+
+        <!-- Bootstrap core CSS -->
+        <link href="/static/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+
+        <!-- Font Awesome -->
+        <link href="/static/css/font-awesome.min.css" rel="stylesheet" />
+
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <link href="/static/css/ie10-viewport-bug-workaround.css" rel="stylesheet" />
+
+        <!-- Custom styles for this template -->
+        <link href="/static/css/cover.css" rel="stylesheet" />
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="/static/js/html5shiv.min.js"><![CDATA[ ]]></script>
+            <script src="/static/js/respond.min.js"><![CDATA[ ]]></script>
+        <![endif]-->
+    </head>
+    <body>
+        <div class="cover-container">
+
+            <div class="masthead clearfix">
+
+                <nav class="navbar">
+                    <div class="navbar-header">
+                      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                         <span class="icon-bar"></span>
+                         <span class="icon-bar"></span>
+                         <span class="icon-bar"></span>
+                      </button>
+                      <h3 class="masthead-brand">
+                        <a class="navbar-brand" href="/">
+                          <img src="/static/img/logo.png" height=50 alt="Logo" class="d-inline-block align-top">
+                        </a>
+                      </h3>
+                    </div>
+
+                    <div class="navbar-collapse collapse">
+
+                      <div class="masthead-search">
+                        <form class="input-group" action="/index/search" method="get">
+                          <input type="text" class="form-control oc-purple" placeholder="Search for a DOI, e.g. 10.1162/qss_a_00023" name="text">
+<input type="hidden" name="rule" value="citeddoi">
+                          <div class="input-group-btn">
+                            <button class="btn btn-default oc-purple" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                          </div>
+                        </form>
+                      </div>
+
+                      <div class="masthead-pages">
+                      <ul class="nav masthead-nav navbar-nav">
+                          $for page in pages:
+                              $if page['name'] == active:
+                                  <li class="active">
+                              $else:
+                                  <li>
+                              <a href="/$page['name']">
+                                  $page['label']
+                              </a>
+                          </li>
+                      </ul>
+                    </div>
+
+                    </div>
+                </nav>
+
+            </div>
+
+            <div class="cover">
+                <h3>Open Citation Identifier Resolution Service</h3>
+                <form class="form-inline" action="/oci" method="get">
+                    <div class="form-group">
+                        <label for="oci">oci</label>:
+                        <input style="min-width:350px" name="oci" type="text" class="form-control" id="oci" placeholder="E.g.: 0301-03018">
+                    </div>
+                    <div class="form-group">
+                        <label for="format">format</label>:
+                        <select class="form-control" name="format" id="format">
+                            <option selected="selected" value="rdf">RDF</option>
+                            <option value="scholix">Scholix</option>
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <input type="submit" class="btn btn-success" value="Look up citation"></input>
+                </form>
+                <div class="left" style="margin-top: 30px">
+                    <p>The <a href="https://doi.org/10.6084/m9.figshare.7127816">Open Citation Identifier (OCI)</a> is a globally unique persistent identifier for bibliographic citations, created and maintained by OpenCitations, and this page provides a resolution service that takes an OCI and returns information about that citation. A formal description and definition of an OCI is given in:</p>
+                    <blockquote>
+                        <p>Silvio Peroni, David Shotton (2019). Open Citation Identifier: Definition. Figshare. <a href="https://doi.org/10.6084/m9.figshare.7127816">https://doi.org/10.6084/m9.figshare.7127816</a>.
+                    </blockquote>
+                    <p>The search box above takes an OCI as input and returns metadata about the identified citation.</p>
+                    <p>Each OCI has a simple structure: the lower-case letters <q>oci</q> followed by a colon, followed by two numbers separated by a dash. For example, <a href="/oci/06101801781-06180334099">oci:06101801781-06180334099</a> is a valid OCI for citations defined within the <span class="oc-purple">Open</span><span class="oc-blue">Citations</span> Index.</p>
+                    <p>The first number is the identifier for the citing bibliographic resource, while the second number is the identifier for the cited bibliographic resource. Each identifier is composed of two parts, a prefix that identifies the supplier database from which the citation is recorded, and a number is a unique identifier for a citing or cited entity within that database. Within the <span class="oc-purple">Open</span><span class="oc-blue">Citations</span> Index, all internal bibliographic resource identifiers are unique, and every citation recorded in the Index has an OCI. OCIs have also been created for open citations within other bibliographic databases where citing and cited works bear unique identifiers of the same type.</p>
+                    <p>Each prefix is a short numerical string delimited by zeros that indicates the supplier database from which the citation is recorded, and in which the  identifier is unique. For example, the prefixes starting with <q>06</q> followed by a sequence of <q>1-9</q> digits and then a final <q>0</q> are all <span class="oc-purple">Open</span><span class="oc-blue">Citations</span> prefixes, while <q>010</q> indicates that <a href="https://www.wikidata.org">Wikidata</a> is the supplier. Thus <a href="/oci/01027931310-01022252312">oci:01027931310-01022252312</a> represents a citation between two bibliographic resources (i.e. <a href="http://www.wikidata.org/entity/Q27931310">wd:Q27931310</a> and <a href="http://www.wikidata.org/entity/Q22252312">wd:Q22252312</a>) whose metadata was in both cases supplied by Wikidata. Similarly, <q>020</q> indicates that <a href="https://crossref.org">Crossref</a> is the source of the DOIs used to create the OCI. Thus <a href="/oci/02001010806360107050663080702026306630509-02001010806360107050663080702026305630301">oci:02001010806360107050663080702026306630509-02001010806360107050663080702026305630301</a> represents a citation between two bibliographic resources identified in Crossref by DOIs (i.e. <a href="http://dx.doi.org/10.1186/1756-8722-6-59">http://dx.doi.org/10.1186/1756-8722-6-59</a> and <a href="http://dx.doi.org/10.1186/1756-8722-5-31">http://dx.doi.org/10.1186/1756-8722-5-31</a>), whose metadata can be retrieved in both cases by means of the Crossref API, if desired. In the Crossref example, the DOIs have been converted into purely numerical strings using a simple two-numeral look-up table, as explained in the <a href="https://doi.org/10.6084/m9.figshare.7127816">OCI definition document</a>.</p>
+                    <p>A list of existing and actiive OCI bibliographic resource identifier prefixes and their meanings can be found in the following table.</p>
+                    <table class="table table-striped">
+                        <tr><th>Prefix</th><th>Supplier</th><th>Identifier type</th><th>Example</th></tr>
+                        <tr><td><em>010</em></td><td><a href="https://www.wikidata.org">Wikidata</a></td><td>Wikidata Identifier (QID)</td><td><a href="/oci/01027931310-01022252312">oci:01027931310-01022252312</a></td></tr>
+                        <tr><td><em>020</em></td><td><a href="https://crossref.org">Crossref</a></td><td>Digital Object Identifier (DOI)</td><td><a href="/oci/02001010806360107050663080702026306630509-02001010806360107050663080702026305630301">oci:02001010806360107050663080702026306630509-02001010806360107050663080702026305630301</a></td></tr>
+                        <tr><td><em>040</em></td><td><a href="https://datadryad.org/">Dryad</a></td><td>Digital Object Identifier (DOI)</td><td><a href="/oci/040050006013613273410133708070900-04003070302361019113701000000040801">oci:040050006013613273410133708070900-04003070302361019113701000000040801</a></td></tr>
+                        <tr><td><em>06[1-9 digits]0</em></td><td><a href="https://w3id.org/oc">OpenCitations</a></td><td>OpenCitations Meta Identifier (OMID)</td><td><a href="/oci/06101801781-06180334099">oci:06101801781-06180334099</a></td></tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <footer id="footer">
+            <div class="container">
+                <div class="row">
+                    <div id="disi" class="col-xs-12 col-sm-2">
+                        <p>
+                            <a href="http://www.unibo.it"><img src="/static/img/unibo.png" /></a>
+                    </div>
+                    <div id="ficlit" class="col-xs-12 col-sm-2">
+                        <p>
+                            <a href="http://www.ficlit.unibo.it"><img src="/static/img/ficlit.png" /></a></p>
+                    </div>
+                    <div id="openscholarlymetadata" class="col-xs-12 col-sm-2">
+                        <p>
+                            <a href="https://openscholarlymetadata.org"><img src="/static/img/openscholarlymetadata.png" /></a></p>
+                    </div>
+                    <!--
+                    <div id="oerc" class="col-xs-12 col-sm-2">
+                        <p>
+                            <a href="http://www.oerc.ox.ac.uk/"><img src="/static/img/oerc.png" /></a>
+                        </p>
+                    </div>
+                    <div id="ox" class="col-xs-12 col-sm-2">
+                        <p>
+                            <a href="http://www.ox.ac.uk"><img src="/static/img/uniox.png" /></a>
+                        </p>
+                    </div>
+                    -->
+                </div>
+            </div>
+            <p>
+                <a class="policy oc-purple" href="/policy">Privacy Policies</a>
+                <span class="separator"></span>
+                <a class="social oc-purple" href="mailto:contact@opencitations.net"><i class="fa fa-envelope" aria-hidden="true"></i></a>
+                <a class="social oc-purple" href="http://www.twitter.com/opencitations"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                <a class="social oc-blue" href="http://github.com/opencitations"><i class="fa fa-github" aria-hidden="true"></i></a>
+                <a class="social oc-blue" href="https://www.linkedin.com/company/opencitations/"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                <a class="social oc-blue" href="https://opencitations.hypotheses.org/"><i class="fa fa-newspaper-o" aria-hidden="true"></i></a>
+<a class="social oc-blue" href="https://scicomm.xyz/@opencitations"><i class="bi bi-mastodon" aria-hidden="true"></i></a>
+            </p>
+        </footer>
+
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="/static/js/jquery.min.js"><![CDATA[ ]]></script>
+        <script>window.jQuery || document.write('<script src="/static/js/jquery.min.js"><\/script>')</script>
+        <script src="/static/js/bootstrap.min.js"><![CDATA[ ]]></script>
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="/static/js/ie10-viewport-bug-workaround.js"><![CDATA[ ]]></script>
+        <script>
+
+        </script>
+
+        <!-- Cookies handler
+        ================================================== -->
+        <script src="/static/js/cookies.js"></script>
+
+    </body>
+</html>

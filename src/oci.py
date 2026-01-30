@@ -426,6 +426,7 @@ class OCIManager(object):
         self.messages = []
         self.f = {
             "decode": self.__decode,
+            "encode_dryad": lambda x: quote(x, safe=""),
             "encode": quote,
             "join": OCIManager.__join,
             "startswith": OCIManager.__startswith,
@@ -554,11 +555,14 @@ class OCIManager(object):
                         for entity in (citing_entity, cited_entity):
                             for p in prefix:
                                 is_ok = search(p, sub("^(%s).+$" % PREFIX_REGEX, "\\1", entity)) is not None
-                                print(prefix, sub("^(%s).+$" % PREFIX_REGEX, "\\1", entity))
                                 if is_ok:
                                     break
                         
                         if is_ok:
+                            # print(f"\n{'='*60}")
+                            # print(f"[SERVICE] Trying: {name}")
+                            # print(f"[PREFIX] {prefix}")
+                            # print(f"[ENTITIES] citing={citing_entity}, cited={cited_entity}")
                             if keep_prefix:
                                 citing = citing_entity
                                 cited = cited_entity
@@ -572,22 +576,31 @@ class OCIManager(object):
 
                             if tp is None:
                                 rest_query = api.replace("[[CITING]]", quote(citing)).replace("[[CITED]]", quote(cited))
-                                print("QUERY", rest_query)
+                                # print(f"[API URL] {rest_query}")
                                 structured_res, type_res = OCIManager.__call_api(rest_query)
+                                # print(f"[API RESPONSE] type={type_res}, has_data={structured_res is not None}")
                                 if structured_res:
-                                    result = self.__read_api_data(structured_res, type_res, query.get("citing"),
-                                                                citing, cited, api), \
-                                            self.__read_api_data(structured_res, type_res, query.get("cited"),
-                                                                citing, cited, api), \
-                                            self.__read_api_data(structured_res, type_res, query.get("citing_date"),
-                                                                citing, cited, api), \
-                                            self.__read_api_data(structured_res, type_res, query.get("cited_date"),
-                                                                citing, cited, api), \
-                                            self.__read_api_data(structured_res, type_res, query.get("creation"),
-                                                                citing, cited, api), \
-                                            self.__read_api_data(structured_res, type_res, query.get("timespan"),
-                                                                citing, cited, api), \
+                                    print(f"[API DATA] {str(structured_res)[:500]}...")
+                                    citing_res = self.__read_api_data(structured_res, type_res, query.get("citing"), citing, cited, api)
+                                    cited_res = self.__read_api_data(structured_res, type_res, query.get("cited"), citing, cited, api)
+                                    citing_date_res = self.__read_api_data(structured_res, type_res, query.get("citing_date"), citing, cited, api)
+                                    cited_date_res = self.__read_api_data(structured_res, type_res, query.get("cited_date"), citing, cited, api)
+                                    creation_res = self.__read_api_data(structured_res, type_res, query.get("creation"), citing, cited, api)
+                                    timespan_res = self.__read_api_data(structured_res, type_res, query.get("timespan"), citing, cited, api)
+                                    
+                                    # print(f"[PARSED] citing={citing_res}")
+                                    # print(f"[PARSED] cited={cited_res}")
+                                    # print(f"[PARSED] citing_date={citing_date_res}")
+                                    # print(f"[PARSED] cited_date={cited_date_res}")
+                                    # print(f"[PARSED] creation={creation_res}")
+                                    # print(f"[PARSED] timespan={timespan_res}")
+                                    # print(f"{'='*60}\n")
+                                    
+                                    result = citing_res, cited_res, citing_date_res, cited_date_res, creation_res, timespan_res, \
                                             rest_query, name, id_type, add_type, id_shape, citation_type
+                                else:
+                                    print(f"[API ERROR] No data returned")
+                                    print(f"{'='*60}\n")
                             else:
                                 sparql = SPARQLWrapper(tp)
                                 sparql_query = sub("\\[\\[CITED\\]\\]", cited, sub("\\[\\[CITING\\]\\]", citing, query))
@@ -616,10 +629,12 @@ class OCIManager(object):
         type_res = None
 
         res = get(u, headers={"User-Agent": USER_AGENT}, timeout=30)
+        # print(f"[API STATUS] {res.status_code}")
 
         if res.status_code == 200:
             res.encoding = "utf-8"
             cur_str = res.text
+            # print(f"[API RAW] {cur_str[:300]}...")
 
             try:
                 structured_res = loads(cur_str)
@@ -627,6 +642,8 @@ class OCIManager(object):
             except JSONDecodeError:
                 structured_res = ElementTree.fromstring(cur_str)
                 type_res = "xml"
+        else:
+            print(f"[API ERROR] Status {res.status_code}: {res.text[:200]}")
 
         return structured_res, type_res
 

@@ -64,18 +64,26 @@ class VirtualEntityDirector(object):
             elif re.match("^id/%s%s$" % (self.__identifier_local_url_re, ex_regex), url) is not None:
                 return self.__handle_identifier(url, ex_regex)
 
+    
     def __handle_citation(self, url, ex_regex):
         oci = "oci:%s" % re.sub("^ci/(.+)%s$" % ex_regex, "\\1", url).split(".")[0]
         om = OCIManager(oci, self.conf["lookup"], self.conf["oci_conf"])
-        citation_g = om.get_citation_object().get_citation_rdf(self.virtual_baseurl, False)
+        citation_obj = om.get_citation_object()
+        if citation_obj is None:
+            return None  # Questo causerà un 404
+        citation_g = citation_obj.get_citation_rdf(self.virtual_baseurl, False)
         if citation_g:
             return self.ldd.get_representation(url, True, citation_g)
 
+
     def __handle_identifier(self, url, ex_regex):
         identified_entity_corpus_id = re.sub("^id/%s%s$" % (self.__identifier_local_url_re, ex_regex), "\\1/\\2-\\7",
-                                             url)
+                                            url)
         oci = "oci:%s" % re.sub("^ci/(.+)$", "\\1", identified_entity_corpus_id)
         om = OCIManager(oci, self.conf["lookup"], self.conf["oci_conf"])
-        oci_g = om.get_citation_object().get_oci_rdf(self.virtual_baseurl)
+        citation_obj = om.get_citation_object()
+        if citation_obj is None:
+            return None  # Questo causerà un 404
+        oci_g = citation_obj.get_oci_rdf(self.virtual_baseurl)
         if oci_g:
             return self.ldd.get_representation(url, True, oci_g)

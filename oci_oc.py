@@ -69,9 +69,9 @@ urls = (
     "/sparql/index", "SparqlIndex",
     "/sparql/meta", "SparqlMeta",
     "/virtual/(.+)", "Virtual",
-    "/oci(/.+)?", "OCI",
     "/index/(.*)?", "IndexContentNegotiation",
-    "/meta/(../.+)", "MetaContentNegotiation"
+    "/meta/(../.+)", "MetaContentNegotiation",
+    "/(.+)?", "OCI"
     
 )
 
@@ -97,23 +97,16 @@ render = web.template.render(c["html"], globals={
     'render': lambda *args, **kwargs: render(*args, **kwargs)
 })
 
-render_common = web.template.render(c["html"] + '/common', globals={
-    'str': str,
-    'isinstance': isinstance
-})
-
-def notfound_custom():
-    """Custom 404 page"""
-    return web.notfound(render_common.notfound(web.ctx.home + web.ctx.fullpath))
-
-
 # App Web.py
 app = web.application(urls, globals())
 
 # Custom 404 handler
-app.notfound = notfound_custom
+def notfound():
+    return web.notfound(render.common.notfound(url=web.ctx.fullpath))
 
-# Gunicorn WSGI application
+app.notfound = notfound
+
+# WSGI application for Gunicorn
 application = app.wsgifunc()
 
 
@@ -345,6 +338,7 @@ class MetaContentNegotiation(ContentNegotiation):
 class OCI:
     def GET(self, oci):
         data = web.input()
+        current_subdomain = web.ctx.host.split('.')[0].lower()
         if "oci" in data:
             clean_oci = re.sub("\s+", "", re.sub("^oci:", "",
                                data.oci.strip(), flags=re.IGNORECASE))
@@ -353,12 +347,11 @@ class OCI:
             if "format" in data:
                 cur_format = "." + data.format.strip().lower()
 
-            raise web.seeother(c["base_url"]
-                               + "/oci/" + clean_oci + cur_format)
+            raise web.seeother( clean_oci + cur_format)
 
         elif oci is None or oci.strip() == "":
             #web_logger.mes()
-            return render.oci(pages, active["oci"])
+            return render.oci(pages, active["oci"], sp_title="", current_subdomain=current_subdomain, render=render)
         else:
             #web_logger.mes()
             clean_oci, ex = re.findall(
@@ -390,8 +383,7 @@ class OCI:
                     web.header('Content-Type', ct_header)
                     return cit
             else:
-                raise web.seeother(c["base_url"]
-                                   + c["virtual_local_url"] + "ci" + clean_oci)
+                raise web.seeother(c["virtual_local_url"] + "ci/" + clean_oci)
 
 class Virtual:
     def GET(self, file_path=None):

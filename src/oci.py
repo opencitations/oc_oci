@@ -557,12 +557,14 @@ class OCIManager(object):
                         item.get("id_shape"), \
                         item["citation_type"] if "citation_type" in item else DEFAULT_CITATION_TYPE
 
-                    # Use internal endpoints if configured
+                    # Use internal endpoints for API calls if configured, but keep original URLs for display (source)
+                    api_call = api  # URL used for actual API call
+                    tp_call = tp    # URL used for actual SPARQL call
                     if USE_INTERNAL_OC_ENDPOINT:
                         if "tp_internal_path" in item and item["tp_internal_path"]:
-                            tp = SPARQL_INTERNAL_ENDPOINT + item["tp_internal_path"]
+                            tp_call = SPARQL_INTERNAL_ENDPOINT + item["tp_internal_path"]
                         if "api_internal_path" in item and item["api_internal_path"]:
-                            api = API_INTERNAL_ENDPOINT + item["api_internal_path"]
+                            api_call = API_INTERNAL_ENDPOINT + item["api_internal_path"]
 
                     if use_it == "yes": 
                         is_ok = False
@@ -589,9 +591,10 @@ class OCIManager(object):
                                 cited = self.f[f_name](cited)
 
                             if tp is None:
+                                rest_query_call = api_call.replace("[[CITING]]", quote(citing)).replace("[[CITED]]", quote(cited))
                                 rest_query = api.replace("[[CITING]]", quote(citing)).replace("[[CITED]]", quote(cited))
-                                # print(f"[API URL] {rest_query}")
-                                structured_res, type_res = OCIManager.__call_api(rest_query)
+                                # print(f"[API URL] {rest_query_call}")
+                                structured_res, type_res = OCIManager.__call_api(rest_query_call)
                                 # print(f"[API RESPONSE] type={type_res}, has_data={structured_res is not None}")
                                 if structured_res:
                                     print(f"[API DATA] {str(structured_res)[:500]}...")
@@ -616,7 +619,7 @@ class OCIManager(object):
                                     print(f"[API ERROR] No data returned")
                                     print(f"{'='*60}\n")
                             else:
-                                sparql = SPARQLWrapper(tp)
+                                sparql = SPARQLWrapper(tp_call)
                                 sparql_query = sub("\\[\\[CITED\\]\\]", cited, sub("\\[\\[CITING\\]\\]", citing, query))
 
                                 sparql.setQuery(sparql_query)

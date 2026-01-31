@@ -30,6 +30,7 @@ from os.path import exists
 from collections import deque
 from requests import get
 from xml.etree import ElementTree
+import os
 
 
 REFERENCE_CITATION_TYPE = "reference"
@@ -46,6 +47,12 @@ E = "ERROR"
 I = "INFO"
 PREFIX_REGEX = "0[1-9]+0"
 VALIDATION_REGEX = "^%s[0-9]+$" % PREFIX_REGEX
+
+# Internal endpoint configuration (read from environment variables)
+USE_INTERNAL_OC_ENDPOINT = os.getenv("USE_INTERNAL_OC_ENDPOINT", "false").lower() == "true"
+API_INTERNAL_ENDPOINT = os.getenv("API_INTERNAL_ENDPOINT", "")
+SPARQL_INTERNAL_ENDPOINT = os.getenv("SPARQL_INTERNAL_ENDPOINT", "")
+
 FORMATS = {
     "xml": "xml",
     "rdfxml": "xml",
@@ -549,6 +556,13 @@ class OCIManager(object):
                         item["add_type"] == "yes" if "add_type" in item else False, \
                         item.get("id_shape"), \
                         item["citation_type"] if "citation_type" in item else DEFAULT_CITATION_TYPE
+
+                    # Use internal endpoints if configured
+                    if USE_INTERNAL_OC_ENDPOINT:
+                        if "tp_internal_path" in item and item["tp_internal_path"]:
+                            tp = SPARQL_INTERNAL_ENDPOINT + item["tp_internal_path"]
+                        if "api_internal_path" in item and item["api_internal_path"]:
+                            api = API_INTERNAL_ENDPOINT + item["api_internal_path"]
 
                     if use_it == "yes": 
                         is_ok = False

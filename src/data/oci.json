@@ -102,7 +102,7 @@
             "prefix": ["06[1-9]+0"],
             "keep_prefix": "yes",
             "api": "https://w3id.org/oc/index/api/v2/citation/[[CITING]]-[[CITED]]",
-            "api_internal_path": "/index/api/v2/citation/[[CITING]]-[[CITED]]",
+            "api_internal_path": "/index/v2/citation/[[CITING]]-[[CITED]]",
             "use_it": "yes",
             "id_type": "omid",
             "add_type": "yes",

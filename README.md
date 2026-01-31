@@ -115,11 +115,15 @@ FROM python:3.11-slim
 # Define environment variables with default values
 # These can be overridden during container runtime
 ENV BASE_URL="oci.opencitations.net" \
-    LOG_DIR="/mnt/log_dir/oc_oci"  \
+    LOG_DIR="/mnt/log_dir/oc_oci" \
     SPARQL_ENDPOINT_INDEX="http://qlever-service.default.svc.cluster.local:7011" \
     SPARQL_ENDPOINT_META="http://virtuoso-service.default.svc.cluster.local:8890/sparql" \
     SYNC_ENABLED="true" \
-    INDEX_BASE_URL="https://w3id.org/oc"
+    INDEX_BASE_URL="https://w3id.org/oc" \
+    USE_INTERNAL_OC_ENDPOINT="true" \
+    API_INTERNAL_ENDPOINT="http://oc-api-service.default.svc.cluster.local" \
+    SPARQL_INTERNAL_ENDPOINT="http://oc-sparql-service.default.svc.cluster.local"
+
 
 # Ensure Python output is unbuffered
 ENV PYTHONUNBUFFERED=1

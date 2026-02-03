@@ -11,18 +11,6 @@
             "citation_type": "reference"
         },
         {
-            "name": "COCI",
-            "query": "PREFIX cito: <http://purl.org/spar/cito/> SELECT ?citing ?cited ?creation ?timespan WHERE { GRAPH <https://w3id.org/oc/index/coci/> { BIND(<http://dx.doi.org/[[CITING]]> AS ?citing) BIND(<http://dx.doi.org/[[CITED]]> AS ?cited) ?citing ^cito:hasCitingEntity ?citation . ?citation cito:hasCitedEntity ?cited . OPTIONAL { ?citation cito:hasCitationCreationDate ?creation } OPTIONAL { ?citation cito:hasCitationTimeSpan ?timespan } } } LIMIT 1",
-            "prefix": ["020"],
-            "tp": "https://sparql.opencitations.net/index",
-            "tp_internal_path": "/index",
-            "use_it": "no",
-            "preprocess": ["decode", "encode"],
-            "id_type": "doi",
-            "id_shape": "http://dx.doi.org/([[XXX__decode]])",
-            "citation_type": "reference"
-        },
-        {
             "name": "Crossref",
             "query": {
                 "citing": ["message::DOI->shape(http://dx.doi.org/)"],
@@ -41,17 +29,6 @@
             "citation_type": "reference"
         },
         {
-            "name": "OpenCitations Corpus",
-            "query": "PREFIX cito: <http://purl.org/spar/cito/> PREFIX prism: <http://prismstandard.org/namespaces/basic/2.0/> SELECT ?citing ?cited ?citing_date ?cited_date WHERE { BIND(<https://w3id.org/oc/corpus/br/[[CITING]]> AS ?citing) BIND(<https://w3id.org/oc/corpus/br/[[CITED]]> AS ?cited) ?citing cito:cites ?cited . OPTIONAL { ?citing prism:publicationDate ?citing_date } OPTIONAL { ?cited prism:publicationDate ?cited_date } } LIMIT 1",
-            "prefix": ["030"],
-            "tp": "https://sparql.opencitations.net/index",
-            "tp_internal_path": "/index",
-            "use_it": "no",
-            "id_type": "occ",
-            "id_shape": "https://w3id.org/oc/corpus/(br/[[XXX]])",
-            "citation_type": "reference"
-        },
-        {
             "name": "Dryad",
             "query": {
                 "citing": ["identifier->remove(doi:)->shape(https://doi.org/)"],
@@ -65,28 +42,6 @@
             "preprocess": ["decode", "encode_dryad"],
             "id_type": "doi",
             "id_shape": "https://doi.org/([[XXX__decode]])",
-            "citation_type": "reference"
-        },
-        {
-            "name": "CROCI",
-            "query": "PREFIX cito: <http://purl.org/spar/cito/> SELECT ?citing ?cited ?creation ?timespan WHERE { GRAPH <https://w3id.org/oc/index/croci/> { BIND(<http://dx.doi.org/[[CITING]]> AS ?citing) BIND(<http://dx.doi.org/[[CITED]]> AS ?cited) ?citing ^cito:hasCitingEntity ?citation . ?citation cito:hasCitedEntity ?cited . OPTIONAL { ?citation cito:hasCitationCreationDate ?creation } OPTIONAL { ?citation cito:hasCitationTimeSpan ?timespan } } } LIMIT 1",
-            "prefix": ["050"],
-            "tp": "https://sparql.opencitations.net/index",
-            "tp_internal_path": "/index",
-            "use_it": "no",
-            "preprocess": ["decode", "encode"],
-            "id_type": "doi",
-            "id_shape": "http://dx.doi.org/([[XXX__decode]])",
-            "citation_type": "reference"
-        },
-        {
-            "name": "OpenCitations Citations in Context Corpus",
-            "query": "PREFIX cito: <http://purl.org/spar/cito/> PREFIX prism: <http://prismstandard.org/namespaces/basic/2.0/> SELECT ?citing ?cited ?citing_date ?cited_date WHERE { BIND(<https://w3id.org/oc/ccc/br/070[[CITING]]> AS ?citing) BIND(<https://w3id.org/oc/ccc/br/070[[CITED]]> AS ?cited) ?citing cito:cites ?cited . OPTIONAL { ?citing prism:publicationDate ?citing_date } OPTIONAL { ?cited prism:publicationDate ?cited_date } } LIMIT 1",
-            "prefix": ["070"],
-            "tp": "http://opencitations.net/ccc/sparql",
-            "use_it": "no",
-            "id_type": "occ",
-            "id_shape": "https://w3id.org/oc/ccc/(br/070[[XXX]])",
             "citation_type": "reference"
         },
         {

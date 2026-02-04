@@ -1,11 +1,28 @@
 # OpenCitations OCI Service
 
-[...]
+The **Open Citation Identifier (OCI)** is a globally unique persistent identifier for bibliographic citations, created and maintained by [OpenCitations](https://opencitations.net). This service provides a resolution mechanism that takes an OCI and returns information about that citation.
 
+## Formal Definition
 
-## Configuration
+A formal description and definition of an OCI is given in:
 
-### Environment Variables
+> Silvio Peroni, David Shotton (2019). *Open Citation Identifier: Definition*. Figshare.
+> [https://doi.org/10.6084/m9.figshare.7127816](https://doi.org/10.6084/m9.figshare.7127816)
+
+## Supplier Prefixes
+
+OCIs have been created for open citations within various bibliographic databases. The prefix indicates the data source:
+
+| Prefix | Supplier | Identifier Type | Example |
+|--------|----------|-----------------|---------|
+| `010` | [Wikidata](https://www.wikidata.org) | Wikidata Identifier (QID) | `oci:01027931310-01022252312` |
+| `020` | [Crossref](https://crossref.org) | Digital Object Identifier (DOI) | `oci:02001010806360107050663080702026306630509-02001010806360107050663080702026305630301` |
+| `040` | [Dryad](https://datadryad.org/) | Digital Object Identifier (DOI) | `oci:0400500060136132734101337001215332523320931-040010009033616142314291812283601030037013701090905` |
+| `06[1-9 digits]0` | [OpenCitations](https://w3id.org/oc) | OpenCitations Meta Identifier (OMID) | `oci:06101801781-06180334099` |
+
+# Configuration
+
+## Environment Variables
 
 The service requires the following environment variables. These values take precedence over the ones defined in `conf.json`:
 
@@ -30,7 +47,7 @@ INDEX_BASE_URL=https://w3id.org/oc
 
 > **Note**: When running with Docker, environment variables always override the corresponding values in `conf.json`. If an environment variable is not set, the application will fall back to the values defined in `conf.json`.
 
-### Static Files Synchronization
+## Static Files Synchronization
 
 The application can synchronize static files from a GitHub repository. This configuration is managed in `conf.json`:
 
@@ -60,9 +77,9 @@ When static sync is enabled (via `--sync-static` or `SYNC_ENABLED=true`), the ap
 
 > **Note**: Make sure the specified folders and files exist in the source repository.
 
-## Running Options
+# Running Options
 
-### Local Development
+## Local Development
 
 For local development and testing, the application uses the built-in web.py HTTP server:
 
@@ -86,7 +103,7 @@ The application supports the following command line arguments:
 - `--sync-static`: Synchronize static files at startup and enable periodic sync (every 30 minutes)
 - `--port PORT`: Specify the port to run the application on (default: 8080)
 
-### Production Deployment (Docker)
+## Production Deployment (Docker)
 
 When running in Docker/Kubernetes, the application uses **Gunicorn** as the WSGI HTTP server for better performance and concurrency handling:
 
@@ -102,9 +119,10 @@ You can change these variables in the Dockerfile:
 The Docker container automatically uses Gunicorn and is configured with static sync enabled by default.
 
 > **Note**: The application code automatically detects the execution environment. When run with `python3 oci_oc.py`, it uses the built-in web.py server. When run with Gunicorn (as in Docker), it uses the WSGI interface.
+
 You can customize the Gunicorn server configuration by modifying the `gunicorn.conf.py` file.
 
-### Dockerfile
+## Dockerfile
 
 You can change these variables in the Dockerfile:
 

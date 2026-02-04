@@ -33,7 +33,7 @@ $def with (pages, active, sp_title, current_subdomain, render)
                 <form action="" method="get">
                     <div class="form-group mb-3">
                         <label for="oci" class="form-label fs-4 fw-bold">oci:</label>
-                        <input name="oci" type="text" class="form-control form-control-lg" id="oci" placeholder="E.g.: 0301-03018">
+                        <input name="oci" type="text" class="form-control form-control-lg" id="oci" placeholder="E.g.: 06101801781-06180334099" required oninvalid="this.setCustomValidity('Please enter a valid OCI')" oninput="this.setCustomValidity('')">
                     </div>
                     <div class="mt-4">
                         <input type="submit" class="btn btn-success btn-lg" value="Look up citation">

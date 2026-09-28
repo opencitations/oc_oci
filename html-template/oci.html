@@ -29,16 +29,57 @@ $def with (pages, active, sp_title, current_subdomain, render)
 
     <main class="container-fluid py-3">
             <div class="cover container">
-                <h3 class="display-4 mb-5">Open Citation Identifier Resolution Service</h3>
-                <form action="" method="get">
-                    <div class="form-group mb-3">
-                        <label for="oci" class="form-label fs-4 fw-bold">oci:</label>
-                        <input name="oci" type="text" class="form-control form-control-lg" id="oci" placeholder="E.g.: 06101801781-06180334099" required oninvalid="this.setCustomValidity('Please enter a valid OCI')" oninput="this.setCustomValidity('')">
-                    </div>
-                    <div class="mt-4">
-                        <input type="submit" class="btn btn-success btn-lg" value="Look up citation">
-                    </div>
-                </form>
+
+                  <div class="text-center my-5 animate__animated animate__fadeIn">
+                    <img src="../static/img/oc-medium.png" alt="Logo" class="img-fluid mb-4" style="max-height: 150px" />
+                  </div>
+
+                  <h1 class="mb-5">Open Citation Identifier Resolution Service</h1>
+
+                  <form class="input-group search-box" action="" method="get">
+                    <input name="oci" type="text" class="form-control form-control-lg" id="oci" placeholder="Resolve OCI ... e.g., 06101801781-06180334099" required oninvalid="this.setCustomValidity('Please enter a valid OCI')" oninput="this.setCustomValidity('')">
+        						<button class="btn btn-outline-secondary theme-color" type="submit" value="Look up citation"><i class="fa fa-search"></i></button>
+                  </form>
+
+        					<button
+        						class="btn btn-light left mt-1"
+        						type="button"
+        						title="Insert random OpenCitations OCI"
+                    onclick="(async () => {
+
+                      const offset = Math.floor(Math.random() * 100500000);
+
+                      const query = 'SELECT ?oci WHERE {'+
+                              '?oci a <http://purl.org/spar/cito/Citation> .'+
+                              '}LIMIT 1 OFFSET ' + offset ;
+
+
+        							const url = 'https://sparql.opencitations.net/index?query=' + encodeURIComponent(query);
+
+        							try {
+        								const response = await fetch(url, {
+        									method: 'GET',
+        									headers: { 'Accept': 'application/sparql-results+json' }
+        								});
+
+        								if (!response.ok) throw new Error('SPARQL request failed');
+
+        								const data = await response.json();
+        								const bindings = data.results.bindings;
+
+        								if (bindings.length > 0) {
+        									document.getElementById('oci').value = bindings[0].oci.value.replace('https://w3id.org/oc/index/ci/', '');
+        								}
+        							} catch (e) {
+        								console.error(e);
+        							}
+        						})()"
+        					>
+        					<i class="fa fa-random"></i> Random OpenCitations OCI
+        					</button>
+
+
+
                 <div class="left" style="margin-top: 30px">
                     <p>The <a href="https://doi.org/10.6084/m9.figshare.7127816">Open Citation Identifier (OCI)</a> is a globally unique persistent identifier for bibliographic citations, created and maintained by OpenCitations, and this page provides a resolution service that takes an OCI and returns information about that citation. A formal description and definition of an OCI is given in:</p>
                     <blockquote>

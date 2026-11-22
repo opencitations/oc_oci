@@ -383,7 +383,7 @@ class OCI:
                 cur_format = ex[1:]
                 om_conf = c["ved_conf"]
                 om = OCIManager(
-                    "oci:" + clean_oci[1:], om_conf["lookup"], om_conf["oci_conf"])
+                    "oci:" + clean_oci, om_conf["lookup"], om_conf["oci_conf"])
                 cit = om.get_citation_data(cur_format)
                 if cit:
                     if cur_format == "csv":
@@ -405,6 +405,8 @@ class OCI:
                     return cit
                 elif om.unavailable_service:
                     raise unavailable(om.unavailable_service, om.retry_after)
+                else:
+                    raise web.notfound()
             else:
                 raise web.seeother(c["virtual_local_url"] + "ci/" + clean_oci)
 

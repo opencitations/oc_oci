@@ -35,6 +35,10 @@ class VirtualEntityDirector(object):
         self.virtual_baseurl = self.ldd.baseurl.replace(self.ldd.corpus_local_url, self.virtual_local_url)
         self.conf = conf
         self.virtual_entity_director = self.ldd.baseurl + "prov/pa/7"
+        # Set when no representation can be returned because the service that
+        # holds the citation data did not answer (see OCIManager)
+        self.unavailable_service = None
+        self.retry_after = None
 
     def redirect(self, url):
         if url.endswith(self.__extensions):
@@ -70,7 +74,8 @@ class VirtualEntityDirector(object):
         om = OCIManager(oci, self.conf["lookup"], self.conf["oci_conf"])
         citation_obj = om.get_citation_object()
         if citation_obj is None:
-            return None  # Questo causerà un 404
+            self.__keep_unavailable_service(om)
+            return None  # Questo causerà un 404 (o un 503, se il servizio non ha risposto)
         citation_g = citation_obj.get_citation_rdf(self.virtual_baseurl, False)
         if citation_g:
             return self.ldd.get_representation(url, True, citation_g)
@@ -83,7 +88,12 @@ class VirtualEntityDirector(object):
         om = OCIManager(oci, self.conf["lookup"], self.conf["oci_conf"])
         citation_obj = om.get_citation_object()
         if citation_obj is None:
-            return None  # Questo causerà un 404
+            self.__keep_unavailable_service(om)
+            return None  # Questo causerà un 404 (o un 503, se il servizio non ha risposto)
         oci_g = citation_obj.get_oci_rdf(self.virtual_baseurl)
         if oci_g:
             return self.ldd.get_representation(url, True, oci_g)
+
+    def __keep_unavailable_service(self, om):
+        self.unavailable_service = om.unavailable_service
+        self.retry_after = om.retry_after

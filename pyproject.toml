@@ -1,0 +1,29 @@
+[project]
+name = "oc-oci"
+version = "2.0.0"
+description = "OpenCitations OCI resolution service"
+authors = [
+    {name = "Mario Petrella", email = "mario.petrella@unibo.it"},
+    {name = "Ivan Heibi", email = "ivan.heibi2@unibo.it"},
+    {name = "Arcangelo Massari", email = "arcangelo.massari@unibo.it"}
+]
+license = {text = "ISC"}
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+dependencies = [
+    "gevent>=26.9.0",
+    "gitpython>=3.2.1",
+    "gunicorn[gevent]>=27.0.1",
+    "python-dateutil>=3.0.0",
+    "rdflib>=7.6.0",
+    "requests>=2.34.2",
+    "sparqlwrapper>=2.0.0",
+    "web-py>=0.76",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

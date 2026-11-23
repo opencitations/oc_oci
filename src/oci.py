@@ -17,6 +17,8 @@
 from argparse import ArgumentParser
 from re import match, findall, sub, search
 from urllib.parse import quote, unquote
+from urllib.error import URLError
+from http.client import HTTPException
 from csv import DictReader
 from rdflib import Graph, RDF, RDFS, XSD, URIRef, Literal, Namespace
 from datetime import datetime
@@ -26,9 +28,11 @@ from json import dumps, load, loads, JSONDecodeError
 from csv import DictWriter
 from io import StringIO
 from SPARQLWrapper import SPARQLWrapper, JSON
+from SPARQLWrapper.SPARQLExceptions import SPARQLWrapperException
 from os.path import exists
 from collections import deque
 from requests import get
+from requests.exceptions import RequestException
 from xml.etree import ElementTree
 import os
 
@@ -47,6 +51,15 @@ E = "ERROR"
 I = "INFO"
 PREFIX_REGEX = "0[1-9]+0"
 VALIDATION_REGEX = "^%s[0-9]+$" % PREFIX_REGEX
+
+# Seconds to wait for an answer from the services listed in the configuration
+SERVICE_TIMEOUT = 30
+# What can go wrong while querying one of those services, either via SPARQL
+# (SPARQLWrapper, built on urllib) or via REST API (requests): the service
+# refuses or fails the request (e.g. "429 Too Many Requests"), it cannot be
+# reached, or it does not answer in time
+SERVICE_ERRORS = (URLError, HTTPException, SPARQLWrapperException,
+                  RequestException, ConnectionError, TimeoutError)
 
 # Internal endpoint configuration (read from environment variables)
 USE_INTERNAL_OC_ENDPOINT = os.getenv("USE_INTERNAL_OC_ENDPOINT", "false").lower() == "true"
@@ -461,6 +474,12 @@ class OCIManager(object):
         else:
             self.add_message("__init__", W, "No configuration file has been found (path: '%s')." % lookup_file)
 
+        # Set when the service that holds the citation data could not be queried
+        # (see '__execute_query'): the name of that service and, if the service
+        # said it, the seconds to wait before asking again
+        self.unavailable_service = None
+        self.retry_after = None
+
         if oci_string:
             self.oci = oci_string.lower().strip()
         elif doi_1 and doi_2:
@@ -619,11 +638,12 @@ class OCIManager(object):
                                     print(f"[API ERROR] No data returned")
                                     print(f"{'='*60}\n")
                             else:
-                                sparql = SPARQLWrapper(tp_call)
+                                sparql = SPARQLWrapper(tp_call, agent=USER_AGENT)
                                 sparql_query = sub("\\[\\[CITED\\]\\]", cited, sub("\\[\\[CITING\\]\\]", citing, query))
 
                                 sparql.setQuery(sparql_query)
                                 sparql.setReturnFormat(JSON)
+                                sparql.setTimeout(SERVICE_TIMEOUT)
                                 q_res = sparql.query().convert()["results"]["bindings"]
                                 if len(q_res) > 0:
                                     answer = q_res[0]
@@ -637,15 +657,42 @@ class OCIManager(object):
 
             except StopIteration:
                 pass  # No nothing
+            except SERVICE_ERRORS as e:
+                # The service did not answer, so we do not know whether the
+                # citation exists: take note of it instead of letting the
+                # exception go up (it would become a "500 internal server error")
+                self.__service_unavailable(name, e)
 
         return result
+
+    def __service_unavailable(self, service, error):
+        self.unavailable_service = service
+        self.retry_after = OCIManager.__get_retry_after(error)
+        self.add_message("__execute_query", E, "The service '%s' cannot be queried at the moment (%s: %s)."
+                         % (service, type(error).__name__, error))
+        print(f"[SERVICE ERROR] {service}: {type(error).__name__}: {error} (retry after: {self.retry_after})")
+
+    @staticmethod
+    def __get_retry_after(error):
+        # The headers of the response are in 'error.headers' when the error comes
+        # from urllib (SPARQL) and in 'error.response.headers' when it comes from
+        # requests (API); errors with no response (e.g. a timeout) have neither
+        headers = getattr(error, "headers", None)
+        response = getattr(error, "response", None)
+        if response is not None:
+            headers = response.headers
+
+        try:
+            return max(1, int(headers.get("Retry-After")))
+        except (AttributeError, TypeError, ValueError):
+            return None  # No header, or expressed as a date
 
     @staticmethod
     def __call_api(u):
         structured_res = None
         type_res = None
 
-        res = get(u, headers={"User-Agent": USER_AGENT}, timeout=30)
+        res = get(u, headers={"User-Agent": USER_AGENT}, timeout=SERVICE_TIMEOUT)
         # print(f"[API STATUS] {res.status_code}")
 
         if res.status_code == 200:
@@ -661,6 +708,10 @@ class OCIManager(object):
                 type_res = "xml"
         else:
             print(f"[API ERROR] Status {res.status_code}: {res.text[:200]}")
+            # Being throttled (429) or a failure of the service (5xx) do not mean
+            # that there are no data: raise them as errors (requests' HTTPError)
+            if res.status_code == 429 or res.status_code >= 500:
+                res.raise_for_status()
 
         return structured_res, type_res
 
@@ -799,7 +850,7 @@ class OCIManager(object):
                                     name, id_type, add_type, id_shape, citation_type)
 
                 return citation
-            else:
+            elif self.unavailable_service is None:
                 self.add_message("get_citation_object", I, "No citation data have been found for the OCI '%s'. "
                                                            "While the OCI specified is syntactically valid, "
                                                            "it is possible that it does not identify any "
